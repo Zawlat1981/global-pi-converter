@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pi Global Money Converter</title>
+    <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+</head>
+<body>
+    <h1>Pi Mainnet App</h1>
+    <p id="user-name">Loading...</p>
+
+    <button onclick="transferPi()" style="padding: 10px 20px; background-color: purple; color: white; border-radius: 5px; border: none; cursor: pointer;">
+        Pay 1 Pi
+    </button>
+
+    <script>
+        // ၁။ SDK ကို စတင်အသက်သွင်းခြင်း
+        Pi.init({ version: "2.0", sandbox: false });
+
+        // ၂။ User Authentication (Username ယူခြင်း)
+        async function auth() {
+            try {
+                const scopes = ['username', 'payments'];
+                const auth = await Pi.authenticate(scopes, onIncompletePaymentFound);
+                document.getElementById('user-name').innerText = "Hello, " + auth.user.username;
+            } catch (err) {
+                console.error("Auth Error:", err);
+            }
+        }
+
+        // ၃။ ငွေလွှဲခြင်း (Payment) လုပ်ဆောင်ချက်
+        async function transferPi() {
+            try {
+                const payment = await Pi.createPayment({
+                    amount: 1, 
+                    memo: "Payment for Pi Global Money Converter",
+                    metadata: { orderId: 12345 },
+                }, {
+                    onReadyForServerApproval: (paymentId) => {
+                        console.log("Server Approval needed for ID:", paymentId);
+                        // ဒီအဆင့်မှာ သင့် Backend Server ရှိရင် Server ဆီ ID ပို့ရပါမယ်
+                    },
+                    onReadyForServerCompletion: (paymentId, txid) => {
+                        console.log("Transaction Finished! TXID:", txid);
+                        alert("Payment Successful!");
+                    },
+                    onCancel: (paymentId) => { console.log("User Cancelled"); },
+                    onError: (error, payment) => { console.error("Payment Error:", error); },
+                });
+            } catch (err) {
+                console.error("Transfer Error:", err);
+            }
+        }
+
+        function onIncompletePaymentFound(payment) {
+            console.log("Incomplete payment found:", payment);
+        };
+
+        // App ပွင့်တာနဲ့ login ဝင်ခိုင်းခြင်း
+        auth();
+    </script>
+</body>
+</html>
