@@ -3,62 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pi Global Money Converter</title>
-    <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+    <title>Global Pi Converter | Mainnet App</title>
+    <script src="https://sdk.mine.pi/pi-sdk.js"></script>
+    <style>
+        :root {
+            --pi-purple: #673ab7;
+            --pi-gold: #ffc107;
+            --bg-color: #f0f2f5;
+        }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg-color); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .app-card { background: white; width: 90%; max-width: 400px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden; }
+        .header { background: var(--pi-purple); color: white; padding: 25px; text-align: center; }
+        .header img { width: 50px; margin-bottom: 10px; }
+        .content { padding: 20px; }
+        .user-section { background: #f8f9fa; border-radius: 12px; padding: 15px; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; font-weight: 600; color: #333; }
+        .input-group { margin-bottom: 15px; text-align: left; }
+        label { display: block; margin-bottom: 5px; color: #666; font-size: 14px; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        .result-box { background: #fff3cd; border: 1px solid #ffeeba; padding: 15px; border-radius: 8px; margin-top: 10px; text-align: center; font-size: 18px; font-weight: bold; color: #856404; }
+        .btn-pay { background: var(--pi-purple); color: white; border: none; width: 100%; padding: 15px; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+        .btn-pay:hover { opacity: 0.9; transform: translateY(-2px); }
+        .footer { text-align: center; padding: 15px; font-size: 12px; color: #999; }
+    </style>
 </head>
 <body>
-    <h1>Pi Mainnet App</h1>
-    <p id="user-name">Loading...</p>
 
-    <button onclick="transferPi()" style="padding: 10px 20px; background-color: purple; color: white; border-radius: 5px; border: none; cursor: pointer;">
-        Pay 1 Pi
-    </button>
+<div class="app-card">
+    <div class="header">
+        <img src="https://mine.pi/static/media/pi-logo.673ab7.png" alt="Pi Logo">
+        <h3>Global Pi Converter</h3>
+    </div>
 
-    <script>
-        // ၁။ SDK ကို စတင်အသက်သွင်းခြင်း
-        Pi.init({ version: "2.0", sandbox: false });
+    <div class="content">
+        <div id="user-display" class="user-section">
+            Checking Pi Identity...
+        </div>
 
-        // ၂။ User Authentication (Username ယူခြင်း)
-        async function auth() {
-            try {
-                const scopes = ['username', 'payments'];
-                const auth = await Pi.authenticate(scopes, onIncompletePaymentFound);
-                document.getElementById('user-name').innerText = "Hello, " + auth.user.username;
-            } catch (err) {
-                console.error("Auth Error:", err);
-            }
+        <div class="input-group">
+            <label>Amount in Pi</label>
+            <input type="number" id="piAmount" placeholder="0.00" oninput="calculate()">
+        </div>
+
+        <div class="input-group">
+            <label>Convert To</label>
+            <select id="currency" onchange="calculate()">
+                <option value="314159">GCV (314,159 USD)</option>
+                <option value="35">USD (Market Rate - Approx)</option>
+                <option value="1200">THB (Thai Baht)</option>
+                <option value="120000">MMK (Myanmar Kyat)</option>
+            </select>
+        </div>
+
+        <div id="result" class="result-box">0.00 Result</div>
+
+        <button class="btn-pay" onclick="transferPi()">Transfer Pi</button>
+        <div id="status" style="margin-top:10px; font-size:12px; color:red; text-align:center;"></div>
+    </div>
+
+    <div class="footer">
+        Powered by Pi Network SDK | Secure Mainnet App
+    </div>
+</div>
+
+<script>
+    // Pi SDK Initial
+    Pi.init({ version: "2.0", sandbox: false });
+
+    async function auth() {
+        try {
+            const scopes = ['username', 'payments'];
+            const authResult = await Pi.authenticate(scopes, onIncompletePaymentFound);
+            document.getElementById('user-display').innerText = "👤 " + authResult.user.username;
+        } catch (err) {
+            document.getElementById('user-display').innerText = "Login Required";
+        }
+    }
+
+    function calculate() {
+        const amount = document.getElementById('piAmount').value;
+        const rate = document.getElementById('currency').value;
+        const res = amount * rate;
+        document.getElementById('result').innerText = res.toLocaleString() + " " + document.getElementById('currency').selectedOptions[0].text.split(' ')[0];
+    }
+
+    async function transferPi() {
+        const amount = parseFloat(document.getElementById('piAmount').value);
+        if(!amount || amount <= 0) {
+            alert("Please enter a valid amount");
+            return;
         }
 
-        // ၃။ ငွေလွှဲခြင်း (Payment) လုပ်ဆောင်ချက်
-        async function transferPi() {
-            try {
-                const payment = await Pi.createPayment({
-                    amount: 1, 
-                    memo: "Payment for Pi Global Money Converter",
-                    metadata: { orderId: 12345 },
-                }, {
-                    onReadyForServerApproval: (paymentId) => {
-                        console.log("Server Approval needed for ID:", paymentId);
-                        // ဒီအဆင့်မှာ သင့် Backend Server ရှိရင် Server ဆီ ID ပို့ရပါမယ်
-                    },
-                    onReadyForServerCompletion: (paymentId, txid) => {
-                        console.log("Transaction Finished! TXID:", txid);
-                        alert("Payment Successful!");
-                    },
-                    onCancel: (paymentId) => { console.log("User Cancelled"); },
-                    onError: (error, payment) => { console.error("Payment Error:", error); },
-                });
-            } catch (err) {
-                console.error("Transfer Error:", err);
-            }
+        try {
+            const payment = await Pi.createPayment({
+                amount: amount,
+                memo: "Convert Pi to Global Currency",
+                metadata: { type: "conversion" }
+            }, {
+                onReadyForServerApproval: function(paymentId) {
+                    document.getElementById('status').innerText = "Waiting for Backend Approval...";
+                    console.log("Payment ID for Server:", paymentId);
+                },
+                onReadyForServerCompletion: function(paymentId, txid) {
+                    document.getElementById('status').style.color = "green";
+                    document.getElementById('status').innerText = "Success! TXID: " + txid;
+                },
+                onCancel: function(paymentId) { document.getElementById('status').innerText = "Payment Cancelled"; },
+                onError: function(error) { document.getElementById('status').innerText = "Error Occurred"; }
+            });
+        } catch (err) {
+            console.error(err);
         }
+    }
 
-        function onIncompletePaymentFound(payment) {
-            console.log("Incomplete payment found:", payment);
-        };
+    function onIncompletePaymentFound(payment) { /* Handle incomplete payments */ }
 
-        // App ပွင့်တာနဲ့ login ဝင်ခိုင်းခြင်း
-        auth();
-    </script>
+    auth();
+</script>
+
 </body>
 </html>
