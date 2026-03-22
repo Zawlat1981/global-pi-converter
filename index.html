@@ -141,7 +141,7 @@
 </div>
 
 <script>
-    // ၁။ Pi SDK ကို စတင်အသက်သွင်းခြင်း (sandbox ကို true ထားပါသည်)
+    // ၁။ Pi SDK ကို စတင်အသက်သွင်းခြင်း
     Pi.init({ version: "2.0", sandbox: false });
 
     // ၂။ User Identity ကို စစ်ဆေးခြင်း
@@ -158,28 +158,25 @@
 
     // ၃။ ငွေလဲလှယ်နှုန်း တွက်ချက်ခြင်း
     function calculateExchange() {
-    const amount = document.getElementById('piAmount').value;
-    const rate = document.getElementById('currency').value;
-    const currencySelect = document.getElementById('currency');
-    
-    // Label ကို ပိုပြီးရှင်းလင်းစွာ ယူနည်း
-    let label = "Result";
-    if (rate == "314159") label = "GCV";
-    else if (rate == "35") label = "USD";
-    else if (rate == "1200") label = "THB";
-    else if (rate == "120000") label = "MMK";
+        const amount = document.getElementById('piAmount').value;
+        const rate = document.getElementById('currency').value;
+        
+        let label = "Result";
+        if (rate == "314159") label = "GCV";
+        else if (rate == "35") label = "USD";
+        else if (rate == "1200") label = "THB";
+        else if (rate == "120000") label = "MMK";
 
-    if (!amount || amount <= 0) {
-        document.getElementById('result').innerText = "0.00 " + label;
-        return;
+        if (!amount || amount <= 0) {
+            document.getElementById('result').innerText = "0.00 " + label;
+            return;
+        }
+
+        const total = amount * rate;
+        document.getElementById('result').innerText = total.toLocaleString() + " " + label;
     }
 
-    const total = amount * rate;
-    document.getElementById('result').innerText = total.toLocaleString() + " " + label;
-}
-
-
-    // ၄။ Pi လွှဲပြောင်းခြင်း (လူကြီးမင်း၏ App ID ကို အစားထိုးထားပါသည်)
+    // ၄။ Pi လွှဲပြောင်းခြင်း
     async function transferPi() {
         const amountInput = document.getElementById('piAmount').value;
         const amount = parseFloat(amountInput);
@@ -197,13 +194,11 @@
             const payment = await Pi.createPayment({
                 amount: amount,
                 memo: "Conversion Test: " + amount + " Pi",
-                metadata: { appId: "global-pi-converter-145d93950f2175d0" } // လူကြီးမင်း၏ App ID
+                metadata: { appId: "global-pi-converter-145d93950f2175d0" }
             }, {
                 onReadyForServerApproval: function(paymentId) {
-    statusDiv.innerText = "Payment submitted. Waiting for approval...";
-    // ဒီနေရာမှာ သင့်ရဲ့ Server ဆီ paymentId ပို့ပြီး Approve လုပ်ခိုင်းရမှာဖြစ်ပါတယ်။
-    // Server မရှိရင်တော့ Payment က ပိတ်မိနေပါလိမ့်မယ်။
-                }, {
+                    statusDiv.innerText = "Payment submitted. Waiting for approval...";
+                },
                 onReadyForServerCompletion: function(paymentId, txid) {
                     statusDiv.style.color = "green";
                     statusDiv.innerHTML = "<b>Success!</b><br>TXID: " + txid;
@@ -234,3 +229,4 @@
 
 </body>
 </html>
+>
