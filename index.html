@@ -157,7 +157,7 @@
             await Pi.createPayment({
                 amount: amount,
                 memo: "Pi Conversion",
-                metadata: { appId: "global-pi-converter-145d93950f2175d0" }
+                metadata: { appId: "global-pi-converter-b62a0d07256a8a72" }
             }, {
                 onReadyForServerApproval: (id) => console.log("Waiting for approval"),
                 onReadyForServerCompletion: (id, txid) => alert("Success! TXID: " + txid),
